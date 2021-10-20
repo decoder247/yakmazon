@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict
+from typing import Dict, Optional
 
 import pandas as pd
 from fastapi import FastAPI, Request, Response, status
@@ -28,6 +28,16 @@ class OrderRequest(BaseModel):
     """
     customer: str
     order: Dict[str, float]
+
+# Define an accepted data model / structure for POST inputs
+class ModifyHerdRequest(BaseModel):
+    """
+    """
+    action: str
+    yak_id: Optional[int]
+    name: Optional[str]
+    sex: Optional[str]
+    age: Optional[float]
 
 # Hardcoded
 xml_file = '/assets/input_herd.xml'
@@ -136,9 +146,49 @@ async def get_herd_info(elapsed_days:int,print_results:bool=True) -> dict:
         response_list.append({'name':yak['name'],'age':yak['age'],'age-last-shaved':yak['age-last-shaved']})
     return {'herd':response_list}
 
-# @app.post("/yak-shop/donate/{day_number}")
+@app.post("/yak-shop/modify/herd")
+async def modify_initial_herd(modify_herd:ModifyHerdRequest) -> None:
+    print(f"Request received to modify herd")
 
-# @app.post("/yak-shop/kill/{day_number}")
+    # Get results and check input
+    modify_herd_dict = modify_herd.dict()
+    assert modify_herd_dict['action'] in ['add','remove'], \
+        f"ERROR: {modify_herd_dict['action']} is not an allowable action! - Allowed inputs (['add','remove'])"
+
+    if modify_herd_dict['action'] == 'remove':
+        q = f"DELETE FROM public.herd WHERE yak_id = {modify_herd_dict['yak_id']}"
+        execute_query(engine,q)
+    elif modify_herd_dict['action'] == 'add':
+        yak = {}
+        yak['name'] = modify_herd_dict['name']
+        yak['sex'] = modify_herd_dict['sex']
+        yak['age'] = modify_herd_dict['age']
+        yak['age-last-shaved'] = [yak['age'] if yak['age']>=1 else 0][0]
+        yak['yield_milk_litres'] = 0
+        yak['yield_wool_skins'] = 0     # Shaved on the first day irregardless!
+        await Herd.objects.create(
+            name = yak['name'],
+            sex = yak['sex'],
+            age = yak['age'],
+            age_last_shaved = yak['age-last-shaved'],
+            yield_milk_litres = yak['yield_milk_litres'],
+            yield_wool_skins = yak['yield_wool_skins']
+        )
+
+    # Recalculate initial yield!
+    q = 'SELECT * FROM public.herd'
+    db_yaks = get_df_from_query(engine,q).to_dict('records')
+    herd_yield, _ = calc_herd_yield(db_yaks,0,starting_mode=True)
+    q = 'DELETE FROM public.stock'
+    execute_query(engine,q)
+    await Stock.objects.create(
+        yield_milk_litres = herd_yield[0],
+        yield_wool_skins = herd_yield[1]
+    )
+    return
+
+# @app.post("/yak-shop/donate/day")
+# @app.post("/yak-shop/kill/day")
 
 @app.post("/yak-shop/order/{order_day}", status_code=status.HTTP_201_CREATED)
 async def place_order(order_day:int,order:OrderRequest, response:Response) -> dict:

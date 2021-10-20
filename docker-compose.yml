@@ -17,34 +17,34 @@ services:
     depends_on:
         - yax-database
   
-  yax-webapp:
-    container_name: angular_webapp
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile_web
-    ports:
-      - "4200:4200"
-    volumes:
-      - ./frontend/src:/app
-    env_file:
-      - ./frontend/frontend.env
-    command: >
-      bash -c "npm start"
-    # depends_on:
-    #     - yax-database
+  # yax-webapp:
+  #   container_name: angular_webapp
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile_web
+  #   ports:
+  #     - "4200:4200"
+  #   volumes:
+  #     - ./frontend/src:/app
+  #   env_file:
+  #     - ./frontend/frontend.env
+  #   command: >
+  #     bash -c "npm start"
+  #   # depends_on:
+  #   #     - yax-database
 
-  yax-nginx:
-    container_name: nginx_server
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile_web
-    ports:
-      - "81:80"
-    env_file:
-      - ./frontend/frontend.env
-    links:
-      - yax-webapp
-    command: ["nginx","-g","daemon off;"]
+  # yax-nginx:
+  #   container_name: nginx_server
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile_web
+  #   ports:
+  #     - "81:80"
+  #   env_file:
+  #     - ./frontend/frontend.env
+  #   links:
+  #     - yax-webapp
+  #   command: ["nginx","-g","daemon off;"]
 
   yax-database:
     container_name: pg_container

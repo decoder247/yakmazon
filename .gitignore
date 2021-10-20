@@ -7,7 +7,7 @@
 /tmp
 /out-tsc
 # Only exists if Bazel was run
-/bazel-out
+frontend/src/bazel-out/*
 
 # dependencies
 frontend/src/node_modules/*
