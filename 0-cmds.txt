@@ -1,0 +1,27 @@
+Tasks:
+- simple frontend interface...
+- Clean up code + ADD readme + COMMIT code!
+- Add in 2 additional methods (delete, update initial)
+- Prepare some ready made curl commands for testing
+- Finish presentation
+
+Improvements:
+- Add watchdog for rapid development
+- Extended frontend interface
+- Additional features
+    * additional methods (initialise different XML)
+    * extended frontend page
+    * Data analysis
+    * Public server
+    * Upload XML file in the website
+    * Graph of the daily stock + ...
+
+
+########################################################################################
+
+# Example CURL commands
+
+
+
+
+

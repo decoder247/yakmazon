@@ -1,0 +1,8 @@
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.7
+
+COPY ./requirements_server.txt /tmp
+RUN pip3 install -r /tmp/requirements_server.txt
+
+COPY ./src /app
+COPY ./assets /assets
+WORKDIR /app

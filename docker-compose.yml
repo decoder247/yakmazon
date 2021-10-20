@@ -1,0 +1,79 @@
+version: '3.8'
+# Alternative version: 3.2
+
+services:
+  yax-server:
+    container_name: api_server
+    build:
+      context: ./backend
+      dockerfile: Dockerfile_server
+    ports:
+      - ${API_SERVER_ACCESS_PORT}:${API_SERVER_CONTAINER_PORT}
+    volumes:
+      - ./backend/:/backend/
+    env_file:
+      - ./backend/backend.env
+    command: /start-reload.sh
+    depends_on:
+        - yax-database
+  
+  yax-webapp:
+    container_name: angular_webapp
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile_web
+    ports:
+      - "4200:4200"
+    volumes:
+      - ./frontend/src:/app
+    env_file:
+      - ./frontend/frontend.env
+    command: >
+      bash -c "npm start"
+    # depends_on:
+    #     - yax-database
+
+  yax-nginx:
+    container_name: nginx_server
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile_web
+    ports:
+      - "81:80"
+    env_file:
+      - ./frontend/frontend.env
+    links:
+      - yax-webapp
+    command: ["nginx","-g","daemon off;"]
+
+  yax-database:
+    container_name: pg_container
+    image: postgres:13.3
+    restart: always
+    expose:
+      - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./backend/backend.env
+    environment:
+      - POSTGRES_USER=yax
+      - POSTGRES_PASSWORD=yax
+      - POSTGRES_DB=yax
+
+  yax-pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - "5052:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    logging:
+      driver: none
+
+volumes:
+    postgres_data:
+    
+    
